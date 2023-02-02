@@ -412,7 +412,7 @@ int shell_clearhis(char **args){
 //help command
 int shell_help(char **args){
   int i;
-  printf("Arn shell\n");
+  printf("Shell\n");
   printf("The following are built in:\n");
 
   //loops through every command in the array
@@ -654,7 +654,7 @@ void shell_loop(void){
 
   do {
     getcwd(cwd, sizeof(cwd));
-    printf("\033[0;32mArn@%s:\033[0;34m%s/\033[0;32m$ ", name ,cwd);
+    printf("\033[0;32mHome@%s:\033[0;34m%s/\033[0;32m$ ", name ,cwd);
     printf("\033[0m");
     line = shell_read_line();
 
