@@ -441,27 +441,8 @@ int shell_color(char **args){
   }
 
   char color1[20],color2[20];
-  FILE *fptr1 = fopen(args[1], "r");
-  FILE *fptr2 = fopen(args[2], "r");
-  
-
-  if(!fptr1){
-      fprintf(stderr, "\n\nshell: %s\n\n", strerror(errno));
-      return 1;
-  }
-  if(!fptr2){
-      fprintf(stderr, "\n\nshell: %s\n\n", strerror(errno));
-      return 1;
-  }
-
-  while(!feof(fptr1))
-{
-  fscanf(fptr1, "%s", color1);
-}
-  while(!feof(fptr2))
-{
-  fscanf(fptr2, "%s", color2);
-}
+  strcpy(color1,argv[1]);
+  strcpy(color2,argv[2]);
   
   initscr();
   start_color();
