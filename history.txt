@@ -1,0 +1,9 @@
+
+dog h.txt
+path
+fmk a
+exit
+fmk n
+exit
+exit
+exiext
