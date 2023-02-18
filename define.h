@@ -25,6 +25,9 @@
 #include <signal.h>
 // for compress
 //#include <zip.h>
+// for systeminfor
+#include <sys/utsname.h>
+#include <sys/sysinfo.h>
 
 // tree
 #define shell_RL_BUFSIZE 1024

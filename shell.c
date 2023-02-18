@@ -30,7 +30,8 @@ int shell_top(char **args);
 int shell_ps(char **args);
 int shell_kill(char **args);
 int shell_du(char **args);
-//int shell_compress(char **args);
+// int shell_compress(char **args);
+int shell_systeminfor(char **args);
 
 // system shell
 int shell_execute(char **args);
@@ -61,19 +62,24 @@ char *builtin_str[] = {
     "ifconfig", //
     "top",      // display system resources and processes
     "ps",       // list running processes
-    "kill",      // send signal number to process 15-sigterm-asks the process to
-           // terminate -9-sigkill-force kill
-    "du", // estimate the space used by a file or directory
+    "kill",     // send signal number to process 15-sigterm-asks the process to
+                // terminate -9-sigkill-force kill
+    "du",       // estimate the space used by a file or directory
     //"compress"
+    "systeminfor" // show systeminfor
 
 };
 
 int (*builtin_func[])(char **) = {
-    &shell_cd,    &shell_help, &shell_cls,     &shell_dog,      &shell_frem,
-    &shell_fmk,   &shell_copy, &shell_hostnm,  &shell_path,     &shell_hd,
-    &shell_tl,    &shell_time, &shell_history, &shell_clearhis, &shell_exit,
-    &shell_csvcv, &shell_tree, &shell_repeat,  &shell_where,    &shell_ifconfig,
-    &shell_top,   &shell_ps,   &shell_kill,    &shell_du, //&shell_compress
+    &shell_cd,         &shell_help,     &shell_cls,
+    &shell_dog,        &shell_frem,     &shell_fmk,
+    &shell_copy,       &shell_hostnm,   &shell_path,
+    &shell_hd,         &shell_tl,       &shell_time,
+    &shell_history,    &shell_clearhis, &shell_exit,
+    &shell_csvcv,      &shell_tree,     &shell_repeat,
+    &shell_where,      &shell_ifconfig, &shell_top,
+    &shell_ps,         &shell_kill,     &shell_du, //&shell_compress
+    &shell_systeminfor
 
 };
 
@@ -682,8 +688,7 @@ int shell_du(char **args) {
   return 1;
 }
 
-
-//compress cmd
+// compress cmd
 /*int shell_compress(char **args){
     if (args[1] == NULL) {
     fprintf(stderr, "\n\nshell: please provide a input file\n\n");
@@ -715,9 +720,8 @@ int shell_du(char **args) {
         if (strncmp(st.name, dirname, len) == 0 && st.name[len] == '/') {
             source = zip_source_file(zip, st.name, 0, 0);
             if (source == NULL) {
-                fprintf(stderr, "Error adding file to ZIP archive: %s\n", zip_strerror(zip));
-                zip_close(zip);
-                return 1;
+                fprintf(stderr, "Error adding file to ZIP archive: %s\n",
+zip_strerror(zip)); zip_close(zip); return 1;
             }
             zip_file_add(zip, st.name + len + 1, source, ZIP_FL_ENC_GUESS);
         }
@@ -726,9 +730,72 @@ int shell_du(char **args) {
     // Close the archive and free resources
     zip_close(zip);
 
-    return 0;
+    return 1;
 }*/
 
+// systeminfor cmd
+int shell_systeminfor(char **args) {
+  struct utsname uts;
+  if (uname(&uts) == -1) {
+    perror("uname");
+    exit(EXIT_FAILURE);
+  }
+
+  printf("Operating System: %s %s %s\n", uts.sysname, uts.release, uts.version);
+
+  char distro[256] = {0};
+  FILE *fp = fopen("/etc/os-release", "r");
+  if (fp != NULL) {
+    char line[256] = {0};
+    while (fgets(line, sizeof(line), fp) != NULL) {
+      if (strstr(line, "PRETTY_NAME=") != NULL) {
+        sscanf(line, "PRETTY_NAME=\"%[^\"]\"", distro);
+        printf("Distribution: %s\n", distro);
+        break;
+      }
+    }
+    fclose(fp);
+  }
+
+  struct sysinfo info;
+  if (sysinfo(&info) == 0) {
+    printf("Total RAM: %ld MB\n", (long)(info.totalram / 1024 / 1024));
+  }
+
+  FILE *cpuinfo = fopen("/proc/cpuinfo", "r");
+  if (cpuinfo != NULL) {
+    char line[256] = {0};
+    int num_cpus = 0;
+    while (fgets(line, sizeof(line), cpuinfo) != NULL) {
+      if (strstr(line, "processor") != NULL) {
+        num_cpus++;
+      } else if (strstr(line, "model name") != NULL) {
+        char *model_name = strchr(line, ':') + 2;
+        printf("CPU Model: %s", model_name);
+      }
+    }
+    fclose(cpuinfo);
+    printf("Number of CPUs: %d\n", num_cpus);
+  }
+
+  FILE *mounts = fopen("/proc/mounts", "r");
+  if (mounts != NULL) {
+    char line[256] = {0};
+    while (fgets(line, sizeof(line), mounts) != NULL) {
+      if (strstr(line, " / ") != NULL) {
+        char *dev = strtok(line, " ");
+        char *mnt = strtok(NULL, " ");
+        char *fs = strtok(NULL, " ");
+        printf("Root file system: %s (%s)\n", dev, fs);
+        printf("Mounted on: %s\n", mnt);
+        break;
+      }
+    }
+    fclose(mounts);
+  }
+
+  return 1;
+}
 
 // launches the commands using pid
 int shell_launch(char **args) {

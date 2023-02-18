@@ -14,3 +14,13 @@ This implementation reads the information about each process from the /proc/[PID
 This program opens the /proc directory, reads each entry in the directory, and for each entry that represents a running process (i.e., is a directory and has a numeric name), it reads the process information from the /proc/<pid>/status file.
 
 The program extracts the process ID, command name, process state, parent process ID, resident set size (RSS), and user ID (UID) from the /proc/<pid>/status file and prints them to the console in a similar format to the ps command. Note that this implementation is simplified and does not include all the options and functionality of the ps command.
+
+
+//systeminfor
+This program retrieves system information by directly accessing the following files and directories:
+
+The /etc/os-release file contains information about the Linux distribution, if it is available.
+The /proc/cpuinfo file contains information about the CPU, including the number of processors and the model name.
+The /proc/mounts file contains information about the mounted file systems, including the root file system and its mount point.
+The sysinfo function retrieves information about system memory, including the total amount of RAM.
+Note that this approach is not as reliable or consistent as using Linux commands to retrieve system information, as the location and format of system files can vary between different Linux distributions and versions.

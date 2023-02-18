@@ -16,3 +16,5 @@ du shell
 du shell
 du shell
 du shell
+systeminfor
+exit
