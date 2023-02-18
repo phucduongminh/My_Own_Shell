@@ -24,6 +24,7 @@ int shell_exit(char **args);
 int shell_csvcv(char **args); // csv file convert
 int shell_tree(char **args);
 int shell_repeat(char **args);
+int shell_where(char **args);
 
 // system shell
 int shell_execute(char **args);
@@ -47,18 +48,18 @@ char *builtin_str[] = {
     "clearhis", // clears the history of your commands
     "exit",     // exit(halts the program)
     //"color", //change color theme
-    "csvcv", // csv file convert
-    "tree",  // allows users to view an easy-to-read list of files and folders
-    "repeat" // repeat a command n times
+    "csvcv",  // csv file convert
+    "tree",   // allows users to view an easy-to-read list of files and folders
+    "repeat", // repeat a command n times
+    "where"   // search the directories
 
 };
 
 int (*builtin_func[])(char **) = {
-    &shell_cd, &shell_help, &shell_cls, &shell_dog, &shell_frem, &shell_fmk,
-    &shell_copy, &shell_hostnm, &shell_path, &shell_hd, &shell_tl, &shell_time,
-    &shell_history, &shell_clearhis, &shell_exit,
-    //&shell_color,
-    &shell_csvcv, &shell_tree, &shell_repeat
+    &shell_cd,    &shell_help, &shell_cls,     &shell_dog,      &shell_frem,
+    &shell_fmk,   &shell_copy, &shell_hostnm,  &shell_path,     &shell_hd,
+    &shell_tl,    &shell_time, &shell_history, &shell_clearhis, &shell_exit,
+    &shell_csvcv, &shell_tree, &shell_repeat,  &shell_where
 
 };
 
@@ -453,6 +454,38 @@ int shell_repeat(char **args) {
     fprintf(stderr, "\n\n");
   }
 
+  return 1;
+}
+
+// where command
+int shell_where(char **args) {
+  char *path, *token, *search_path;
+  char path_separator[2] = ":";
+  char filename[1024];
+
+  if (args[1] == NULL) {
+    fprintf(stderr, "\n\nshell: input folder/file name \n\n");
+    return 1;
+  }
+
+  path = getenv("PATH");
+  if (!path) {
+    fprintf(stderr, "Error: PATH environment variable not set\n");
+    return 1;
+  }
+
+  search_path = strdup(path);
+  token = strtok(search_path, path_separator);
+  while (token) {
+    snprintf(filename, sizeof(filename), "%s/%s", token, args[1]);
+    if (access(filename, X_OK) == 0) {
+      printf("%s\n", filename);
+      return 1;
+    }
+    token = strtok(NULL, path_separator);
+  }
+
+  fprintf(stderr, "Error: %s not found in PATH\n", args[1]);
   return 1;
 }
 

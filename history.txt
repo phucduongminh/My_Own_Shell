@@ -15,3 +15,29 @@ tree Home
 ls
 cd ..
 repeat 2 ls
+cd ..
+ls
+where shell.c
+where shell.c
+where shell.c
+cd ..
+where shell.c
+where che
+where shell.c
+where shell
+where shell.c
+where shell.c
+where shell
+where shell.c
+where
+where MyOwn
+where
+where shell.c
+where shell.c
+where shell.c
+where shell
+where MyOwnShell
+where ls
+paht
+path
+where 1
