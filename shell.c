@@ -30,6 +30,7 @@ int shell_top(char **args);
 int shell_ps(char **args);
 int shell_kill(char **args);
 int shell_du(char **args);
+//int shell_compress(char **args);
 
 // system shell
 int shell_execute(char **args);
@@ -60,9 +61,10 @@ char *builtin_str[] = {
     "ifconfig", //
     "top",      // display system resources and processes
     "ps",       // list running processes
-    "kill"      // send signal number to process 15-sigterm-asks the process to
+    "kill",      // send signal number to process 15-sigterm-asks the process to
            // terminate -9-sigkill-force kill
-    "du" // estimate the space used by a file or directory
+    "du", // estimate the space used by a file or directory
+    //"compress"
 
 };
 
@@ -71,7 +73,7 @@ int (*builtin_func[])(char **) = {
     &shell_fmk,   &shell_copy, &shell_hostnm,  &shell_path,     &shell_hd,
     &shell_tl,    &shell_time, &shell_history, &shell_clearhis, &shell_exit,
     &shell_csvcv, &shell_tree, &shell_repeat,  &shell_where,    &shell_ifconfig,
-    &shell_top,   &shell_ps,   &shell_kill,    &shell_du
+    &shell_top,   &shell_ps,   &shell_kill,    &shell_du, //&shell_compress
 
 };
 
@@ -679,6 +681,54 @@ int shell_du(char **args) {
 
   return 1;
 }
+
+
+//compress cmd
+/*int shell_compress(char **args){
+    if (args[1] == NULL) {
+    fprintf(stderr, "\n\nshell: please provide a input file\n\n");
+    return 1;
+  }
+
+  if (args[2] == NULL) {
+    fprintf(stderr, "\n\nshell: please provide a output file\n\n");
+    return 1;
+  }
+
+    const char *dirname = args[1];
+    const char *outfilename = args[2];
+
+    // Open the output file as a ZIP archive
+    int errorp = 0;
+    zip_t *zip = zip_open(outfilename, ZIP_CREATE | ZIP_EXCL, &errorp);
+    if (zip == NULL) {
+        fprintf(stderr, "Error creating ZIP archive: %s\n", zip_strerror(zip));
+        return 1;
+    }
+
+    // Add the contents of the directory to the archive
+    struct zip_stat st;
+    zip_source_t *source = NULL;
+    int len = strlen(dirname);
+
+    for (zip_int64_t i = 0; zip_stat_index(zip, i, 0, &st) == 0; i++) {
+        if (strncmp(st.name, dirname, len) == 0 && st.name[len] == '/') {
+            source = zip_source_file(zip, st.name, 0, 0);
+            if (source == NULL) {
+                fprintf(stderr, "Error adding file to ZIP archive: %s\n", zip_strerror(zip));
+                zip_close(zip);
+                return 1;
+            }
+            zip_file_add(zip, st.name + len + 1, source, ZIP_FL_ENC_GUESS);
+        }
+    }
+
+    // Close the archive and free resources
+    zip_close(zip);
+
+    return 0;
+}*/
+
 
 // launches the commands using pid
 int shell_launch(char **args) {

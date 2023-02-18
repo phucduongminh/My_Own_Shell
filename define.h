@@ -23,6 +23,8 @@
 #include <time.h>
 // for kill
 #include <signal.h>
+// for compress
+//#include <zip.h>
 
 // tree
 #define shell_RL_BUFSIZE 1024
