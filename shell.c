@@ -1,7 +1,3 @@
-/*
-  __Credits__ = https://github.com/brenns10/lsh
-*/
-
 //INCLUDES
 #include <sys/wait.h>
 #include <sys/types.h>
@@ -13,7 +9,7 @@
 #include <limits.h>
 #include <time.h>
 #include <errno.h>
-#include <ncurses.h>
+//#include <ncurses.h>
 
 
 
@@ -40,7 +36,7 @@ int shell_time(char **args);
 int shell_history(char **args);
 int shell_clearhis(char **args);
 int shell_exit(char **args);
-int shell_color(char **args);
+//int shell_color(char **args);
 int shell_csvcv(char **args); //csv file convert
 
 
@@ -63,8 +59,8 @@ char *builtin_str[] = {
   "history", //tells the history of your commands
   "clearhis", //clears the history of your commands
   "exit", //exit(halts the program)
-  "color", //change color theme
-  "csvcv" /csv file convert
+  //"color", //change color theme
+  "csvcv" //csv file convert
 };
 
 
@@ -87,7 +83,7 @@ int (*builtin_func[]) (char **) = {
   &shell_history,
   &shell_clearhis,
   &shell_exit,
-  &shell_color,
+  //&shell_color,
   &shell_csvcv
 };
 
@@ -437,7 +433,7 @@ int shell_exit(char **args){
 
 
 //color
-int shell_color(char **args){
+/*int shell_color(char **args){
 
   if(args[1] == NULL||args[2] == NULL){
     fprintf(stderr, "\n\nshell: please input text && background color\n\n");
@@ -460,7 +456,7 @@ int shell_color(char **args){
   fclose(fptr2);
 
   return 1;
-}
+}*/
 
 
 
@@ -477,7 +473,7 @@ int shell_csvcv(char **args) {
     infile = fopen(args[1], "r");
     outfile = fopen(args[2], "w");
 
-    while (fgets(line, MAX_LINE_LENGTH, infile) != NULL) {
+    while (fgets(line, 100, infile) != NULL) {
         num_fields = 0;
         fields[num_fields] = strtok(line, ",");
 
@@ -488,10 +484,10 @@ int shell_csvcv(char **args) {
 
         for (i = 0; i < num_fields; i++) {
             strcpy(field_data[i], fields[i]);
-            for (j = strlen(field_data[i]); j < FIELD_WIDTH; j++) {
+            for (j = strlen(field_data[i]); j < 10; j++) {
                 field_data[i][j] = ' ';
             }
-            field_data[i][FIELD_WIDTH] = '\0';
+            field_data[i][10] = '\0';
             fputs(field_data[i], outfile);
         }
 
