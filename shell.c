@@ -1,17 +1,4 @@
-//INCLUDES
-#include <sys/wait.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <limits.h>
-#include <time.h>
-#include <errno.h>
-//#include <ncurses.h>
-
-
+#include "define.h"
 
 //GLOBAL VARIABLES
 char name[25];
@@ -38,7 +25,8 @@ int shell_clearhis(char **args);
 int shell_exit(char **args);
 //int shell_color(char **args);
 int shell_csvcv(char **args); //csv file convert
-
+int shell_tree(char **args);
+int shell_repeat(char **args);
 
 
 //DATA
@@ -60,7 +48,11 @@ char *builtin_str[] = {
   "clearhis", //clears the history of your commands
   "exit", //exit(halts the program)
   //"color", //change color theme
-  "csvcv" //csv file convert
+  "csvcv", //csv file convert
+  "tree", //allows users to view an easy-to-read list of files and folders
+  "repeat" //repeat a command n times
+
+
 };
 
 
@@ -84,7 +76,10 @@ int (*builtin_func[]) (char **) = {
   &shell_clearhis,
   &shell_exit,
   //&shell_color,
-  &shell_csvcv
+  &shell_csvcv,
+  &shell_tree,
+  $shell_repeat
+
 };
 
 
@@ -463,6 +458,16 @@ int shell_exit(char **args){
 
 //convert csv file
 int shell_csvcv(char **args) {
+  if(args[1] == NULL){
+    fprintf(stderr, "\n\nshell: please provide a input file\n\n");
+    return 1;
+  }
+
+
+  if(args[2] == NULL){
+    fprintf(stderr, "\n\nshell: please provide a output file\n\n");
+    return 1;
+  }
     FILE *infile, *outfile;
     char line[100];
     char *fields[10];
@@ -497,8 +502,60 @@ int shell_csvcv(char **args) {
     fclose(infile);
     fclose(outfile);
 
-    return 0;
+    return 1;
 }
+
+
+
+
+//tree command
+//ex. $tree Music
+int shell_tree(char **args) {
+  char* directory = args[1] != NULL ? args[1] : ".";
+  printf("%s\n", directory);
+
+  counter_t counter = {0, 0};
+  walk(directory, "", &counter);
+
+  printf("\n%zu directories, %zu files\n",
+    counter.dirs ? counter.dirs - 1 : 0, counter.files);
+  return 1;
+}
+
+
+
+
+//repeat command
+int shell_repeat(char **args) {
+  int i, num_repeats;
+
+  if (args[1] != NULL&&args[2] != NULL) {
+    fprintf(stderr, "Usage: repeat NUMBER COMMAND\n");
+    return 1;
+  } else {
+    fprintf(stderr, "\n\nshell: wrong command\n\n");
+  }
+
+  num_repeats = atoi(args[1]);
+
+  char **tokens = malloc(bufsize * sizeof(char*));
+  int position=0,i=2;
+
+  while (args[i] != NULL) {
+    tokens[position] = args[i];
+    position++;
+  }
+  tokens[position] = NULL;
+
+  for (i = 0; i < num_repeats; i++) {
+    shell_execute(tokens);
+    }
+  }
+  free(tokens);
+
+  return 1;
+}
+
 
 
 
