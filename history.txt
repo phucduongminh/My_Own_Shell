@@ -7,3 +7,10 @@ fmk n
 exit
 exit
 exiext
+repeat ls
+ls
+repeat 2 ls
+tree ls
+tree Home
+ls
+cd ..
