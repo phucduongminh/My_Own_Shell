@@ -29,6 +29,7 @@ int shell_ifconfig(char **args);
 int shell_top(char **args);
 int shell_ps(char **args);
 int shell_kill(char **args);
+int shell_du(char **args);
 
 // system shell
 int shell_execute(char **args);
@@ -55,12 +56,13 @@ char *builtin_str[] = {
     "csvcv",  // csv file convert
     "tree",   // allows users to view an easy-to-read list of files and folders
     "repeat", // repeat a command n times
-    "where",   // search the directories
+    "where",  // search the directories
     "ifconfig", //
-    "top", // display system resources and processes
-    "ps", //list running processes
-    "kill" //send signal number to process 15-sigterm-asks the process to terminate -9-sigkill-force kill
-    
+    "top",      // display system resources and processes
+    "ps",       // list running processes
+    "kill"      // send signal number to process 15-sigterm-asks the process to
+           // terminate -9-sigkill-force kill
+    "du" // estimate the space used by a file or directory
 
 };
 
@@ -68,7 +70,8 @@ int (*builtin_func[])(char **) = {
     &shell_cd,    &shell_help, &shell_cls,     &shell_dog,      &shell_frem,
     &shell_fmk,   &shell_copy, &shell_hostnm,  &shell_path,     &shell_hd,
     &shell_tl,    &shell_time, &shell_history, &shell_clearhis, &shell_exit,
-    &shell_csvcv, &shell_tree, &shell_repeat,  &shell_where, &shell_ifconfig, &shell_top, &shell_ps, &shell_kill
+    &shell_csvcv, &shell_tree, &shell_repeat,  &shell_where,    &shell_ifconfig,
+    &shell_top,   &shell_ps,   &shell_kill,    &shell_du
 
 };
 
@@ -498,168 +501,184 @@ int shell_where(char **args) {
   return 1;
 }
 
-
-//ifconfig
+// ifconfig
 int shell_ifconfig(char **args) {
-    if (args[1] == NULL) {
+  if (args[1] == NULL) {
     fprintf(stderr, "\n\nshell: input network interface \n\n");
     return 1;
   }
 
-    char *interface_name = args[1];
-    int fd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (fd < 0) {
-        perror("socket");
-        return 1;
-    }
-
-    struct ifreq ifr;
-    strncpy(ifr.ifr_name, interface_name, IFNAMSIZ-1);
-
-    // Get the IP address
-    if (ioctl(fd, SIOCGIFADDR, &ifr) != 0) {
-        perror("ioctl SIOCGIFADDR");
-        return 1;
-    }
-    struct sockaddr_in *ipaddr = (struct sockaddr_in *)&ifr.ifr_addr;
-    printf("%s: inet addr %s\n", interface_name, inet_ntoa(ipaddr->sin_addr));
-
-    // Get the netmask
-    if (ioctl(fd, SIOCGIFNETMASK, &ifr) != 0) {
-        perror("ioctl SIOCGIFNETMASK");
-        return 1;
-    }
-    struct sockaddr_in *netmask = (struct sockaddr_in *)&ifr.ifr_netmask;
-    printf("      netmask %s\n", inet_ntoa(netmask->sin_addr));
-
-    // Get the hardware (MAC) address
-    if (ioctl(fd, SIOCGIFHWADDR, &ifr) != 0) {
-        perror("ioctl SIOCGIFHWADDR");
-        return 1;
-    }
-    unsigned char *hwaddr = ifr.ifr_hwaddr.sa_data;
-    printf("      HWaddr %02X:%02X:%02X:%02X:%02X:%02X\n",
-           hwaddr[0], hwaddr[1], hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5]);
-
-    close(fd);
+  char *interface_name = args[1];
+  int fd = socket(AF_INET, SOCK_DGRAM, 0);
+  if (fd < 0) {
+    perror("socket");
     return 1;
+  }
+
+  struct ifreq ifr;
+  strncpy(ifr.ifr_name, interface_name, IFNAMSIZ - 1);
+
+  // Get the IP address
+  if (ioctl(fd, SIOCGIFADDR, &ifr) != 0) {
+    perror("ioctl SIOCGIFADDR");
+    return 1;
+  }
+  struct sockaddr_in *ipaddr = (struct sockaddr_in *)&ifr.ifr_addr;
+  printf("%s: inet addr %s\n", interface_name, inet_ntoa(ipaddr->sin_addr));
+
+  // Get the netmask
+  if (ioctl(fd, SIOCGIFNETMASK, &ifr) != 0) {
+    perror("ioctl SIOCGIFNETMASK");
+    return 1;
+  }
+  struct sockaddr_in *netmask = (struct sockaddr_in *)&ifr.ifr_netmask;
+  printf("      netmask %s\n", inet_ntoa(netmask->sin_addr));
+
+  // Get the hardware (MAC) address
+  if (ioctl(fd, SIOCGIFHWADDR, &ifr) != 0) {
+    perror("ioctl SIOCGIFHWADDR");
+    return 1;
+  }
+  unsigned char *hwaddr = ifr.ifr_hwaddr.sa_data;
+  printf("      HWaddr %02X:%02X:%02X:%02X:%02X:%02X\n", hwaddr[0], hwaddr[1],
+         hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5]);
+
+  close(fd);
+  return 1;
 }
 
+// top cmd
+int shell_top(char **args) {
+  struct process_info processes[MAX_PROCESSES];
+  int num_processes = 0;
 
-//top cmd
-int shell_top(char **args){
-    struct process_info processes[MAX_PROCESSES];
-    int num_processes = 0;
-
-    while (1) {
-        DIR *dir = opendir(PROC_DIRECTORY);
-        if (!dir) {
-            perror("opendir");
-            return 1;
-        }
-
-        struct dirent *entry;
-        while ((entry = readdir(dir)) != NULL && num_processes < MAX_PROCESSES) {
-            if (!isdigit(entry->d_name[0])) {
-                continue;
-            }
-
-            int pid = atoi(entry->d_name);
-            get_process_info(&processes[num_processes], pid);
-            processes[num_processes].pid = pid;
-
-            num_processes++;
-        }
-
-        closedir(dir);
-
-        printf("PID\tCOMMAND\tSTATE\tCPU TIME\tVIRTUAL MEMORY\n");
-        for (int i = 0; i < num_processes; i++) {
-            printf("%d\t%s\t%c\t%lu:%02lu\t%lu\n", processes[i].pid, processes[i].command, processes[i].state, processes[i].utime / sysconf(_SC_CLK_TCK) / 60, processes[i].utime / sysconf(_SC_CLK_TCK) % 60, processes[i].vsize);
-        }
-
-        sleep(1);
-        printf("\033[2J\033[1;1H");
-        num_processes = 0;
-    }
-
-    return 1;
-}
-
-
-//ps cmd
-int  shell_ps(char **args){
-    DIR *dir;
-    struct dirent *entry;
-    char buf[512];
-    FILE *fp;
-
-    dir = opendir(PROC_DIRECTORY);
+  while (1) {
+    DIR *dir = opendir(PROC_DIRECTORY);
     if (!dir) {
-        perror("opendir failed");
-        return 1;
+      perror("opendir");
+      return 1;
     }
 
-    printf("%-5s %-20s %-10s %-10s %-10s %s\n", "PID", "COMMAND", "STATE", "PPID", "RSS", "USER");
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL && num_processes < MAX_PROCESSES) {
+      if (!isdigit(entry->d_name[0])) {
+        continue;
+      }
 
-    while ((entry = readdir(dir)) != NULL) {
-        // Check if the entry is a directory and is a numeric value (process ID)
-        if (entry->d_type == DT_DIR && sscanf(entry->d_name, "%ld", &entry->d_ino) == 1) {
-            snprintf(buf, sizeof(buf), PROC_DIRECTORY "/%s/status", entry->d_name);
-            fp = fopen(buf, "r");
-            if (fp) {
-                char line[128];
-                char cmd[128], state, user[128];
-                int pid, ppid, rss;
+      int pid = atoi(entry->d_name);
+      get_process_info(&processes[num_processes], pid);
+      processes[num_processes].pid = pid;
 
-                while (fgets(line, sizeof(line), fp)) {
-                    if (sscanf(line, "Name:\t%s", cmd) == 1) {
-                        // Found the process command name
-                    } else if (sscanf(line, "State:\t%c", &state) == 1) {
-                        // Found the process state
-                    } else if (sscanf(line, "Pid:\t%d", &pid) == 1) {
-                        // Found the process ID
-                    } else if (sscanf(line, "PPid:\t%d", &ppid) == 1) {
-                        // Found the parent process ID
-                    } else if (sscanf(line, "VmRSS:\t%d", &rss) == 1) {
-                        // Found the resident set size (RSS) in kilobytes
-                    } else if (sscanf(line, "Uid:\t%*d\t%127s", user) == 1) {
-                        // Found the user ID (UID)
-                    }
-                }
-
-                fclose(fp);
-
-                // Print the process information
-                printf("%-5d %-20s %-10c %-10d %-10d %s\n", pid, cmd, state, ppid, rss, user);
-            }
-        }
+      num_processes++;
     }
 
     closedir(dir);
 
-    return 1;
+    printf("PID\tCOMMAND\tSTATE\tCPU TIME\tVIRTUAL MEMORY\n");
+    for (int i = 0; i < num_processes; i++) {
+      printf("%d\t%s\t%c\t%lu:%02lu\t%lu\n", processes[i].pid,
+             processes[i].command, processes[i].state,
+             processes[i].utime / sysconf(_SC_CLK_TCK) / 60,
+             processes[i].utime / sysconf(_SC_CLK_TCK) % 60,
+             processes[i].vsize);
+    }
+
+    sleep(1);
+    printf("\033[2J\033[1;1H");
+    num_processes = 0;
+  }
+
+  return 1;
 }
 
+// ps cmd
+int shell_ps(char **args) {
+  DIR *dir;
+  struct dirent *entry;
+  char buf[512];
+  FILE *fp;
 
-//kill command
+  dir = opendir(PROC_DIRECTORY);
+  if (!dir) {
+    perror("opendir failed");
+    return 1;
+  }
+
+  printf("%-5s %-20s %-10s %-10s %-10s %s\n", "PID", "COMMAND", "STATE", "PPID",
+         "RSS", "USER");
+
+  while ((entry = readdir(dir)) != NULL) {
+    // Check if the entry is a directory and is a numeric value (process ID)
+    if (entry->d_type == DT_DIR &&
+        sscanf(entry->d_name, "%ld", &entry->d_ino) == 1) {
+      snprintf(buf, sizeof(buf), PROC_DIRECTORY "/%s/status", entry->d_name);
+      fp = fopen(buf, "r");
+      if (fp) {
+        char line[128];
+        char cmd[128], state, user[128];
+        int pid, ppid, rss;
+
+        while (fgets(line, sizeof(line), fp)) {
+          if (sscanf(line, "Name:\t%s", cmd) == 1) {
+            // Found the process command name
+          } else if (sscanf(line, "State:\t%c", &state) == 1) {
+            // Found the process state
+          } else if (sscanf(line, "Pid:\t%d", &pid) == 1) {
+            // Found the process ID
+          } else if (sscanf(line, "PPid:\t%d", &ppid) == 1) {
+            // Found the parent process ID
+          } else if (sscanf(line, "VmRSS:\t%d", &rss) == 1) {
+            // Found the resident set size (RSS) in kilobytes
+          } else if (sscanf(line, "Uid:\t%*d\t%127s", user) == 1) {
+            // Found the user ID (UID)
+          }
+        }
+
+        fclose(fp);
+
+        // Print the process information
+        printf("%-5d %-20s %-10c %-10d %-10d %s\n", pid, cmd, state, ppid, rss,
+               user);
+      }
+    }
+  }
+
+  closedir(dir);
+
+  return 1;
+}
+
+// kill command
 int shell_kill(char **args) {
-    if (args[1] == NULL&&args[2] == NULL) {
+  if (args[1] == NULL && args[2] == NULL) {
     fprintf(stderr, "\n\nshell: input sig-nmuber and PID \n\n");
     return 1;
   }
 
-    int signal_num = atoi(args[1]);
-    pid_t pid = atoi(args[2]);
+  int signal_num = atoi(args[1]);
+  pid_t pid = atoi(args[2]);
 
-    if (kill(pid, signal_num) == -1) {
-        perror("kill");
-        return 1;
-    }
-
+  if (kill(pid, signal_num) == -1) {
+    perror("kill");
     return 1;
+  }
+
+  return 1;
 }
 
+// du command
+int shell_du(char **args) {
+  if (args[1] == NULL) {
+    fprintf(stderr, "\n\nshell: input path \n\n");
+    return 1;
+  }
+
+  char *path = args[1];
+
+  du(path, 0);
+
+  return 1;
+}
 
 // launches the commands using pid
 int shell_launch(char **args) {

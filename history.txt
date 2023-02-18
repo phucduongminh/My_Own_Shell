@@ -1,8 +1,18 @@
-ifconfig eth0
-ifconfig  enp0s25
-ifconfig wlan0
-ifconfig enp)
-ifconfig enp)
-ifconfig enp0
-ifconfig eth0
-ps
+exit
+du ./shell.c
+du MyOwnShell
+du ../shell.c
+du shell.c
+du ./shell
+du shell.c
+du shell.c
+du shell.c
+du shell.c
+du shell.c
+du shell.c
+du shell.c
+du shell.c
+du shell
+du shell
+du shell
+du shell

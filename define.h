@@ -21,10 +21,10 @@
 #include <ctype.h>
 #include <dirent.h>
 #include <time.h>
-//for kill
-#include <signal.h> 
+// for kill
+#include <signal.h>
 
-
+// tree
 #define shell_RL_BUFSIZE 1024
 
 typedef struct counter {
@@ -170,4 +170,48 @@ void get_process_info(struct process_info *info, int pid) {
   };
 
   fclose(fp);
+}
+
+// du
+void du(char *path, int depth) {
+  struct stat statbuf;
+
+  if (lstat(path, &statbuf) < 0) {
+    perror("lstat");
+    return;
+  }
+
+  if (!S_ISDIR(statbuf.st_mode)) {
+    printf("%ld\t%s\n", (long)statbuf.st_blocks, path);
+    return;
+  }
+
+  DIR *dir;
+  struct dirent *entry;
+  char subpath[1024];
+
+  if (!(dir = opendir(path))) {
+    perror("opendir");
+    return;
+  }
+
+  while ((entry = readdir(dir)) != NULL) {
+    if (entry->d_type == DT_DIR) {
+      if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+        continue;
+      }
+
+      snprintf(subpath, sizeof(subpath), "%s/%s", path, entry->d_name);
+      printf("%*s%s/\n", depth * 2, "", entry->d_name);
+      du(subpath, depth + 1);
+    } else {
+      snprintf(subpath, sizeof(subpath), "%s/%s", path, entry->d_name);
+      if (lstat(subpath, &statbuf) >= 0) {
+        printf("%*s%ld\t%s\n", depth * 2, "", (long)statbuf.st_blocks,
+               entry->d_name);
+      }
+    }
+  }
+
+  closedir(dir);
 }
