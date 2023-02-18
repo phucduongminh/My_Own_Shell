@@ -5,3 +5,4 @@ ifconfig enp)
 ifconfig enp)
 ifconfig enp0
 ifconfig eth0
+ps
