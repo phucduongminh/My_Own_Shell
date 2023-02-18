@@ -14,3 +14,4 @@ tree ls
 tree Home
 ls
 cd ..
+repeat 2 ls

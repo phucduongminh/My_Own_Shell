@@ -25,7 +25,7 @@ int shell_csvcv(char **args); // csv file convert
 int shell_tree(char **args);
 int shell_repeat(char **args);
 
-//system shell
+// system shell
 int shell_execute(char **args);
 
 // DATA
@@ -209,7 +209,8 @@ int shell_path(char **args) {
 
   char cwd[PATH_MAX];
   // gets the curent working directory
-  getcwd(cwd, sizeof(cwd));
+  if (getcwd(cwd, sizeof(cwd))) {
+  };
   // and prints it
   printf("\n%s\n\n", cwd);
 
@@ -241,7 +242,8 @@ int shell_hd(char **args) {
     return 1;
   }
 
-  fscanf(fptr, "%[^\n]", c);
+  if (fscanf(fptr, "%[^\n]", c)) {
+  };
   printf("%s", c);
 
   // frees the 'c' variable and closes the file
@@ -257,7 +259,8 @@ int shell_tl(char **args) {
   FILE *fptr = fopen(args[1], "r");
 
   while (!feof(fptr)) {
-    fgets(tmp, 1024, fptr);
+    if (fgets(tmp, 1024, fptr)) {
+    };
   }
 
   printf("\n%s\n", tmp);
@@ -412,25 +415,24 @@ int shell_csvcv(char **args) {
 // ex. $tree Music
 int shell_tree(char **args) {
   char *directory = args[1] != NULL ? args[1] : ".";
-  printf("%s\n", directory);
-
+  fprintf(stderr, "%s\n", directory);
   counter_t counter = {0, 0};
   walk(directory, "", &counter);
 
-  printf("\n%zu directories, %zu files\n", counter.dirs ? counter.dirs - 1 : 0,
-         counter.files);
+  fprintf(stderr, "\n%zu directories, %zu files\n",
+          counter.dirs ? counter.dirs - 1 : 0, counter.files);
   return 1;
 }
 
 // repeat command
 int shell_repeat(char **args) {
-  int i, num_repeats,bufsize = shell_RL_BUFSIZE;
+  int i, num_repeats, bufsize = shell_RL_BUFSIZE;
 
   if (args[1] != NULL && args[2] != NULL) {
-    fprintf(stderr, "Usage: repeat NUMBER COMMAND\n");
-    return 1;
+    fprintf(stderr, "Usage: repeat COMMAND\n");
   } else {
-    fprintf(stderr, "\n\nshell: wrong command\n\n");
+    fprintf(stderr, "\n\nshell: input repeat times and command\n\n");
+    return 1;
   }
 
   num_repeats = atoi(args[1]);
@@ -448,9 +450,10 @@ int shell_repeat(char **args) {
 
   for (i = 0; i < num_repeats; i++) {
     shell_execute(tokens);
+    fprintf(stderr, "\n\n");
   }
 
-return 1;
+  return 1;
 }
 
 // launches the commands using pid
@@ -496,7 +499,6 @@ int shell_execute(char **args) {
 
   return shell_launch(args);
 }
-
 
 // takes in whatever the user inputed
 char *shell_read_line(void) {
@@ -577,7 +579,8 @@ void shell_loop(void) {
   char cwd[PATH_MAX];
 
   do {
-    getcwd(cwd, sizeof(cwd));
+    if (getcwd(cwd, sizeof(cwd))) {
+    };
     printf("\033[0;32mHome@%s:\033[0;34m%s/\033[0;32m$ ", name, cwd);
     printf("\033[0m");
     line = shell_read_line();
@@ -619,10 +622,12 @@ int main(int argc, char **argv) {
   // If the file can be opened it does this
   else {
     fseek(fptr, SEEK_END, 0);
-    ftell(fptr);
+    if (ftell(fptr)) {
+    };
     rewind(fptr);
     // reads the name inside the file into a global variable
-    fread(name, 25, 1, fptr);
+    if (fread(name, 25, 1, fptr)) {
+    };
   }
 
   // Run command loop.
