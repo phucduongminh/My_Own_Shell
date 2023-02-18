@@ -25,6 +25,7 @@ int shell_csvcv(char **args); // csv file convert
 int shell_tree(char **args);
 int shell_repeat(char **args);
 int shell_where(char **args);
+int shell_ifconfig(char **args);
 
 // system shell
 int shell_execute(char **args);
@@ -51,7 +52,8 @@ char *builtin_str[] = {
     "csvcv",  // csv file convert
     "tree",   // allows users to view an easy-to-read list of files and folders
     "repeat", // repeat a command n times
-    "where"   // search the directories
+    "where",   // search the directories
+    "ifconfig"
 
 };
 
@@ -59,7 +61,7 @@ int (*builtin_func[])(char **) = {
     &shell_cd,    &shell_help, &shell_cls,     &shell_dog,      &shell_frem,
     &shell_fmk,   &shell_copy, &shell_hostnm,  &shell_path,     &shell_hd,
     &shell_tl,    &shell_time, &shell_history, &shell_clearhis, &shell_exit,
-    &shell_csvcv, &shell_tree, &shell_repeat,  &shell_where
+    &shell_csvcv, &shell_tree, &shell_repeat,  &shell_where, &shell_ifconfig
 
 };
 
@@ -488,6 +490,55 @@ int shell_where(char **args) {
   fprintf(stderr, "Error: %s not found in PATH\n", args[1]);
   return 1;
 }
+
+
+//ifconfig
+int shell_ifconfig(char **args) {
+    if (args[1] == NULL) {
+    fprintf(stderr, "\n\nshell: input network interface \n\n");
+    return 1;
+  }
+
+    char *interface_name = args[1];
+    int fd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (fd < 0) {
+        perror("socket");
+        return 1;
+    }
+
+    struct ifreq ifr;
+    strncpy(ifr.ifr_name, interface_name, IFNAMSIZ-1);
+
+    // Get the IP address
+    if (ioctl(fd, SIOCGIFADDR, &ifr) != 0) {
+        perror("ioctl SIOCGIFADDR");
+        return 1;
+    }
+    struct sockaddr_in *ipaddr = (struct sockaddr_in *)&ifr.ifr_addr;
+    printf("%s: inet addr %s\n", interface_name, inet_ntoa(ipaddr->sin_addr));
+
+    // Get the netmask
+    if (ioctl(fd, SIOCGIFNETMASK, &ifr) != 0) {
+        perror("ioctl SIOCGIFNETMASK");
+        return 1;
+    }
+    struct sockaddr_in *netmask = (struct sockaddr_in *)&ifr.ifr_netmask;
+    printf("      netmask %s\n", inet_ntoa(netmask->sin_addr));
+
+    // Get the hardware (MAC) address
+    if (ioctl(fd, SIOCGIFHWADDR, &ifr) != 0) {
+        perror("ioctl SIOCGIFHWADDR");
+        return 1;
+    }
+    unsigned char *hwaddr = ifr.ifr_hwaddr.sa_data;
+    printf("      HWaddr %02X:%02X:%02X:%02X:%02X:%02X\n",
+           hwaddr[0], hwaddr[1], hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5]);
+
+    close(fd);
+    return 1;
+}
+
+
 
 // launches the commands using pid
 int shell_launch(char **args) {

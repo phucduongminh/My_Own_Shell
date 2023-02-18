@@ -1,43 +1,7 @@
-
-dog h.txt
-path
-fmk a
-exit
-fmk n
-exit
-exit
-exiext
-repeat ls
-ls
-repeat 2 ls
-tree ls
-tree Home
-ls
-cd ..
-repeat 2 ls
-cd ..
-ls
-where shell.c
-where shell.c
-where shell.c
-cd ..
-where shell.c
-where che
-where shell.c
-where shell
-where shell.c
-where shell.c
-where shell
-where shell.c
-where
-where MyOwn
-where
-where shell.c
-where shell.c
-where shell.c
-where shell
-where MyOwnShell
-where ls
-paht
-path
-where 1
+ifconfig eth0
+ifconfig  enp0s25
+ifconfig wlan0
+ifconfig enp)
+ifconfig enp)
+ifconfig enp0
+ifconfig eth0

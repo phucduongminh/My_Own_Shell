@@ -11,6 +11,12 @@
 #include <time.h>
 #include <unistd.h>
 //#include <ncurses.h>
+//for ifconfig
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 #define shell_RL_BUFSIZE 1024
 

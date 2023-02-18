@@ -1,0 +1,4 @@
+//note for ifconfig cmd
+This program takes a single command-line argument, which is the name of the network interface to retrieve information for. It first creates a socket using the socket() system call with the AF_INET address family, the SOCK_DGRAM socket type, and a protocol of 0. It then creates a struct ifreq variable, and sets the ifr_name field to the interface name specified in the command-line argument.
+
+The program then uses the ioctl() system call with the SIOCGIFADDR flag to retrieve the IP address of the interface, and prints it to the console using the inet_ntoa() function. It then retrieves the netmask and hardware (MAC) address in the same way, and prints them to the console as well.
