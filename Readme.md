@@ -1,12 +1,11 @@
-###Build my own Linux Shell by C language.
-
-##Run 
+# Build my own Linux Shell by C language.
+### Run 
 
 $ make
 
 $ ./shell
 
-##Command
+### Command Completed
 "cd",       // change directory
 
 "help",     // help command
