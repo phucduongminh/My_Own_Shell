@@ -30,7 +30,7 @@ int shell_top(char **args);
 int shell_ps(char **args);
 int shell_kill(char **args);
 int shell_du(char **args);
-// int shell_compress(char **args);
+int shell_compress(char **args);
 int shell_systeminfor(char **args);
 
 // system shell
@@ -65,7 +65,7 @@ char *builtin_str[] = {
     "kill",     // send signal number to process 15-sigterm-asks the process to
                 // terminate -9-sigkill-force kill
     "du",       // estimate the space used by a file or directory
-    //"compress"
+    "compress",
     "systeminfor" // show systeminfor
 
 };
@@ -78,7 +78,7 @@ int (*builtin_func[])(char **) = {
     &shell_history,    &shell_clearhis, &shell_exit,
     &shell_csvcv,      &shell_tree,     &shell_repeat,
     &shell_where,      &shell_ifconfig, &shell_top,
-    &shell_ps,         &shell_kill,     &shell_du, //&shell_compress
+    &shell_ps,         &shell_kill,     &shell_du, &shell_compress
     &shell_systeminfor
 
 };
@@ -688,8 +688,8 @@ int shell_du(char **args) {
   return 1;
 }
 
-// compress cmd
-/*int shell_compress(char **args){
+//compress cmd
+int shell_compress(char **args){
     if (args[1] == NULL) {
     fprintf(stderr, "\n\nshell: please provide a input file\n\n");
     return 1;
@@ -731,7 +731,7 @@ zip_strerror(zip)); zip_close(zip); return 1;
     zip_close(zip);
 
     return 1;
-}*/
+}
 
 // systeminfor cmd
 int shell_systeminfor(char **args) {
