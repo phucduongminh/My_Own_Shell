@@ -24,7 +24,7 @@
 // for kill
 #include <signal.h>
 // for compress
-#include <zip.h>
+//#include <zip.h>
 // for systeminfor
 #include <sys/utsname.h>
 #include <sys/sysinfo.h>
