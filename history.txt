@@ -18,3 +18,4 @@ du shell
 du shell
 systeminfor
 exit
+exit
